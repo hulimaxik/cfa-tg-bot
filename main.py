@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CFA Ops Bot — polling mode (стабильно для Railway Hobby)
+CFA Ops Bot — polling mode
 """
 import os
 import logging
@@ -53,13 +53,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⛔ Доступ запрещён.")
         return
     text = (
-        "🤖 <b>CFA Ops Bot запущен</b>\n"
-        "Режим: polling\n"
-        f"Время: {datetime.utcnow().strftime('%H:%M UTC')}\n\n"
-        "Команды:\n"
-        "/status — статус системы\n"
-        "/budget — расходы сегодня\n"
-        "/stop — остановить (требует подтверждения)\n"
+        "🤖 <b>CFA Ops Bot запущен</b>
+"
+        "Режим: polling
+"
+        f"Время: {datetime.utcnow().strftime('%H:%M UTC')}
+
+"
+        "Команды:
+"
+        "/status — статус системы
+"
+        "/budget — расходы сегодня
+"
+        "/stop — остановить (требует подтверждения)
+"
         "/logs — последние ошибки"
     )
     await update.message.reply_html(text)
@@ -69,24 +77,25 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_owner(update):
         return
     try:
-        # Количество источников
         sources = supabase.table("sources").select("*", count="exact").execute()
         src_count = sources.count or 0
 
-        # Сырые посты за сегодня
         today = datetime.utcnow().strftime("%Y-%m-%d")
         posts = supabase.table("raw_posts").select("*", count="exact").gte("collected_at", today).execute()
         post_count = posts.count or 0
 
-        # Расходы
         costs = supabase.table("cost_tracking").select("cost_usd").gte("created_at", today).execute()
         total_cost = sum(float(r.get("cost_usd", 0)) for r in costs.data)
 
         text = (
-            f"📊 <b>Статус CFA</b>\n"
-            f"Источников: {src_count}\n"
-            f"Постов сегодня: {post_count}\n"
-            f"Расход сегодня: ${total_cost:.4f}\n"
+            f"📊 <b>Статус CFA</b>
+"
+            f"Источников: {src_count}
+"
+            f"Постов сегодня: {post_count}
+"
+            f"Расход сегодня: ${total_cost:.4f}
+"
             f"Бот: ✅ polling"
         )
     except Exception as e:
@@ -105,9 +114,13 @@ async def budget(update: Update, context: ContextTypes.DEFAULT_TYPE):
         lines = [f"• {r['service']}: ${float(r['cost_usd']):.4f}" for r in costs.data]
         total = sum(float(r.get("cost_usd", 0)) for r in costs.data)
         text = (
-            f"💰 <b>Бюджет сегодня</b>\n"
-            + ("\n".join(lines) if lines else "Нет расходов") +
-            f"\n\n<b>Итого: ${total:.4f}</b>"
+            f"💰 <b>Бюджет сегодня</b>
+"
+            + ("
+".join(lines) if lines else "Нет расходов") +
+            f"
+
+<b>Итого: ${total:.4f}</b>"
         )
     except Exception as e:
         text = f"⚠️ Ошибка: {str(e)[:100]}"
@@ -142,7 +155,10 @@ async def logs_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for r in rows.data:
             t = r["created_at"][:16].replace("T", " ")
             lines.append(f"[{t}] {r['level']} | {r['module']} | {r['message'][:60]}")
-        text = "📋 <b>Последние логи</b>\n\n" + "\n".join(lines) if lines else "Логов пока нет."
+        text = "📋 <b>Последние логи</b>
+
+" + "
+".join(lines) if lines else "Логов пока нет."
     except Exception as e:
         text = f"⚠️ {str(e)[:100]}"
     await update.message.reply_html(text)
