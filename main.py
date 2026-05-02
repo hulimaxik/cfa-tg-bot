@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""CFA Ops Bot — polling mode"""
+"""CFA Ops Bot — simple polling"""
 import os
 import logging
 import asyncio
 from datetime import datetime
 from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes, filters
-from supabase import create_client, Client
+from telegram.ext import Application, CommandHandler, ContextTypes
+from supabase import create_client
 
 TG_BOT_TOKEN = os.environ["TG_BOT_TOKEN"]
 TG_OWNER_CHAT_ID = int(os.environ["TG_OWNER_CHAT_ID"])
@@ -58,15 +58,9 @@ async def stop_cmd(update, context):
     if not is_owner(update):
         await update.message.reply_text("Only owner.")
         return
-    await update.message.reply_text("Type 'confirm' to stop.")
-
-async def confirm_stop(update, context):
-    if not is_owner(update):
-        return
-    if update.message.text.strip().lower() == "confirm":
-        await update.message.reply_text("Stopping...")
-        await asyncio.sleep(1)
-        os._exit(0)
+    await update.message.reply_text("Stopping...")
+    await asyncio.sleep(1)
+    os._exit(0)
 
 async def logs_cmd(update, context):
     if not is_owner(update):
@@ -88,7 +82,6 @@ def main():
     app.add_handler(CommandHandler("budget", budget))
     app.add_handler(CommandHandler("stop", stop_cmd))
     app.add_handler(CommandHandler("logs", logs_cmd))
-    app.add_handler(filters.TEXT & filters.Chat(chat_id=TG_OWNER_CHAT_ID), confirm_stop)
     logger.info("Starting bot...")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
